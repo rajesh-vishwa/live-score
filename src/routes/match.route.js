@@ -38,7 +38,13 @@ matchRouter.get("/", async (_req, res, next) => {
       .from(matches)
       .orderBy(desc(matches.createdAt))
       .limit(limit);
-    res.json(rows);
+
+    res.json(
+      rows.map((row) => ({
+        ...row,
+        status: getMatchStatus(row.startTime, row.endTime),
+      })),
+    );
   } catch (err) {
     next(err);
   }

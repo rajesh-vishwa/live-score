@@ -61,13 +61,15 @@ export const updateMatchSchema = z
   })
   .partial()
   .superRefine((data, ctx) => {
-    const start = new Date(data.startTime).getTime();
-    const end = new Date(data.endTime).getTime();
-    if (end <= start) {
-      ctx.addIssue({
-        code: "custom",
-        message: "endTime must be after startTime",
-        path: ["endTime"],
-      });
+    if (data.startTime && data.endTime) {
+      const start = new Date(data.startTime).getTime();
+      const end = new Date(data.endTime).getTime();
+      if (end <= start) {
+        ctx.addIssue({
+          code: "custom",
+          message: "endTime must be after startTime",
+          path: ["endTime"],
+        });
+      }
     }
   });

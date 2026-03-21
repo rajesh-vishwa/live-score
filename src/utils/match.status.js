@@ -7,7 +7,7 @@ function toMs(value) {
 export function getMatchStatus(startTime, endTime, now = new Date()) {
   const start = toMs(startTime);
   const end = toMs(endTime);
-  const nowMs = now.getTime();
+  const nowMs = toMs(now);
 
   if (Number.isNaN(start) || Number.isNaN(end)) {
     return null;
