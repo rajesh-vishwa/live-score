@@ -6,6 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -20,12 +21,15 @@ export const matches = pgTable("matches", {
   sport: text("sport").notNull(),
   homeTeam: text("home_team").notNull(),
   awayTeam: text("away_team").notNull(),
-  status: matchStatusEnum("status").notNull().default("scheduled"),
+  status: matchStatusEnum("status").notNull(),
   startTime: timestamp("start_time", { withTimezone: true }).notNull(),
   endTime: timestamp("end_time", { withTimezone: true }),
   homeScore: integer("home_score").notNull().default(0),
   awayScore: integer("away_score").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
@@ -50,5 +54,12 @@ export const commentary = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (table) => [index("commentary_match_id_idx").on(table.matchId)],
+  (table) => [
+    index("commentary_match_id_idx").on(table.matchId),
+    unique("commentary_match_minute_seq_unique").on(
+      table.matchId,
+      table.minute,
+      table.sequence,
+    ),
+  ],
 );
