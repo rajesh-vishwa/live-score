@@ -3,10 +3,12 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db/db.js";
 import { matches } from "../db/schema.js";
-import { createMatchSchema } from "../validation/matches.validation.js";
+import {
+  createMatchSchema,
+  listMatchesQuerySchema,
+  updateMatchSchema,
+} from "../validation/matches.validation.js";
 import { getMatchStatus } from "../utils/match.status.js";
-
-const updateMatchSchema = createMatchSchema;
 
 const idParamSchema = z.object({
   id: z.uuid(),
@@ -17,13 +19,14 @@ const DEFAULT_LIMIT = 10;
 
 const matchRouter = Router();
 
+// get all matches
 matchRouter.get("/", async (_req, res, next) => {
   const parsed = listMatchesQuerySchema.safeParse(_req.query);
 
   if (!parsed.success) {
     res.status(400).json({
       error: "Invalid query ",
-      details: JSON.stringify(parsed.error),
+      details: parsed.error.issues,
     });
     return;
   }
@@ -68,7 +71,7 @@ matchRouter.post("/", async (req, res, next) => {
     if (!parsed.success) {
       res.status(400).json({
         error: "Invalid match data payload",
-        details: JSON.stringify(parsed.error),
+        details: parsed.error.issues,
       });
       return;
     }

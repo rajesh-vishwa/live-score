@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const isoDatetimeChecker = z.string().datetime();
+const isoDatetimeChecker = z.iso.datetime();
 
 const isoDateString = z
   .string()
@@ -48,3 +48,26 @@ export const updateScoreSchema = z.object({
   homeScore: z.coerce.number().int().nonnegative(),
   awayScore: z.coerce.number().int().nonnegative(),
 });
+
+export const updateMatchSchema = z
+  .object({
+    sport: z.string().min(1),
+    homeTeam: z.string().min(1),
+    awayTeam: z.string().min(1),
+    startTime: isoDateString,
+    endTime: isoDateString,
+    homeScore: z.coerce.number().int().nonnegative().optional(),
+    awayScore: z.coerce.number().int().nonnegative().optional(),
+  })
+  .partial()
+  .superRefine((data, ctx) => {
+    const start = new Date(data.startTime).getTime();
+    const end = new Date(data.endTime).getTime();
+    if (end <= start) {
+      ctx.addIssue({
+        code: "custom",
+        message: "endTime must be after startTime",
+        path: ["endTime"],
+      });
+    }
+  });
