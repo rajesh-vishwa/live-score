@@ -65,7 +65,7 @@ matchRouter.get("/:id", async (req, res, next) => {
       res.status(404).json({ error: "Match not found" });
       return;
     }
-    res.json(row);
+    res.json({ data: row });
   } catch (err) {
     next(err);
   }
@@ -82,7 +82,7 @@ matchRouter.post("/", async (req, res, next) => {
       return;
     }
     const body = parsed.data;
-    const [row] = await db
+    const [event] = await db
       .insert(matches)
       .values({
         sport: body.sport,
@@ -95,7 +95,16 @@ matchRouter.post("/", async (req, res, next) => {
         awayScore: body.awayScore ?? 0,
       })
       .returning();
-    res.status(201).json(row);
+
+    if (typeof res.app.locals.broadcastMatchCreated === "function") {
+      try {
+        res.app.locals.broadcastMatchCreated(event);
+      } catch (broadcastErr) {
+        console.error("broadcastMatchCreated failed", broadcastErr);
+      }
+    }
+
+    res.status(201).json({ data: event });
   } catch (err) {
     next(err);
   }
@@ -130,7 +139,7 @@ matchRouter.patch("/:id", async (req, res, next) => {
       res.status(404).json({ error: "Match not found" });
       return;
     }
-    res.json(row);
+    res.json({ data: row });
   } catch (err) {
     next(err);
   }
