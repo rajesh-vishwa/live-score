@@ -82,7 +82,7 @@ matchRouter.post("/", async (req, res, next) => {
       return;
     }
     const body = parsed.data;
-    const [row] = await db
+    const [event] = await db
       .insert(matches)
       .values({
         sport: body.sport,
@@ -95,7 +95,12 @@ matchRouter.post("/", async (req, res, next) => {
         awayScore: body.awayScore ?? 0,
       })
       .returning();
-    res.status(201).json(row);
+
+    if (res.app.locals.broadcastMatchCreated) {
+      res.app.locals.broadcastMatchCreated(event);
+    }
+
+    res.status(201).json({ data: event });
   } catch (err) {
     next(err);
   }
