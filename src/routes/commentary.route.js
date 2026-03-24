@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { desc, eq } from "drizzle-orm";
 import { db } from "../db/db.js";
-import { commentary } from "../db/schema.js";
+import { commentary, matches } from "../db/schema.js";
 import {
   createCommentarySchema,
   listCommentaryQuerySchema,
@@ -33,6 +33,17 @@ commentaryRouter.get("/", async (req, res, next) => {
     }
 
     const limit = Math.min(queryParse.data.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
+
+    const [match] = await db
+      .select({ id: matches.id })
+      .from(matches)
+      .where(eq(matches.id, paramsParse.data.id))
+      .limit(1);
+
+    if (!match) {
+      res.status(404).json({ error: "Match not found" });
+      return;
+    }
 
     const rows = await db
       .select()
@@ -67,6 +78,18 @@ commentaryRouter.post("/", async (req, res, next) => {
       return;
     }
 
+    // Verify match exists
+    const [match] = await db
+      .select({ id: matches.id })
+      .from(matches)
+      .where(eq(matches.id, paramsParse.data.id))
+      .limit(1);
+
+    if (!match) {
+      res.status(404).json({ error: "Match not found" });
+      return;
+    }
+
     const [created] = await db
       .insert(commentary)
       .values({
@@ -77,6 +100,14 @@ commentaryRouter.post("/", async (req, res, next) => {
 
     res.status(201).json({ data: created });
   } catch (err) {
+    // Handle unique constraint violation
+    if (err.code === "23505") {
+      res.status(409).json({
+        error:
+          "Commentary entry already exists for this match/minutes/sequence",
+      });
+      return;
+    }
     next(err);
   }
 });
