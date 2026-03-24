@@ -66,6 +66,7 @@ function handleMessage(socket, data) {
     message = JSON.parse(data.toString());
   } catch {
     sendJson(socket, { type: "error", message: "Invalid JSON" });
+    return;
   }
 
   if (
@@ -143,14 +144,13 @@ export function attachWebSocketServer(server) {
     });
 
     socket.on("error", () => {
+      console.error("WebSocket error");
       socket.terminate();
     });
 
     socket.on("close", () => {
       cleanupSubscriptions(socket);
     });
-
-    socket.on("error", console.error);
   });
 
   const interval = setInterval(() => {
