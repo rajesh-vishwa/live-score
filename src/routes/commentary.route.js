@@ -98,6 +98,9 @@ commentaryRouter.post("/", async (req, res, next) => {
       })
       .returning();
 
+    if (res.app.locals.broadcastCommentary) {
+      res.app.locals.broadcastCommentary(created.matchId, created);
+    }
     res.status(201).json({ data: created });
   } catch (err) {
     const code = err && typeof err === "object" ? err.code : undefined;
