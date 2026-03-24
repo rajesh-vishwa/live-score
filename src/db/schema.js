@@ -41,7 +41,7 @@ export const commentary = pgTable(
     matchId: uuid("match_id")
       .notNull()
       .references(() => matches.id, { onDelete: "cascade" }),
-    minute: integer("minute").notNull(),
+    minutes: integer("minutes").notNull(),
     sequence: integer("sequence").notNull(),
     period: text("period").notNull(),
     eventType: text("event_type").notNull(),
@@ -58,7 +58,7 @@ export const commentary = pgTable(
     index("commentary_match_id_idx").on(table.matchId),
     unique("commentary_match_minute_seq_unique").on(
       table.matchId,
-      table.minute,
+      table.minutes,
       table.sequence,
     ),
   ],
