@@ -100,8 +100,16 @@ commentaryRouter.post("/", async (req, res, next) => {
 
     res.status(201).json({ data: created });
   } catch (err) {
+    const code = err && typeof err === "object" ? err.code : undefined;
+
+    // Handle FK race: match deleted after existence check, before insert
+    if (code === "23503") {
+      res.status(404).json({ error: "Match not found" });
+      return;
+    }
+
     // Handle unique constraint violation
-    if (err.code === "23505") {
+    if (code === "23505") {
       res.status(409).json({
         error:
           "Commentary entry already exists for this match/minutes/sequence",
